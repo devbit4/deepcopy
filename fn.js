@@ -1,52 +1,38 @@
 function deepCopy(origin) {
-  // null, string, number, boolean, undefined...
-  if (origin === null || typeof origin !== "object") {
-    return origin;
-  }
+  const tag = toString.call(origin);
 
-  //Date
-  if (origin instanceof Date) {
-    return new Date(origin.getTime());
-  }
+  switch (tag) {
+    case "[object Date]":
+      return new Date(origin.getTime());
 
-  //Array
-  if (origin instanceof Array) {
-    return origin.reduce((acc, cur) => {
-      acc.push(deepCopy(cur));
+    case "[object Array]":
+      return origin.reduce((acc, cur) => {
+        acc.push(deepCopy(cur));
+        return acc;
+      }, []);
 
-      return acc;
-    }, []);
-  }
-
-  //Object(Date,Array 제외)
-  if (origin instanceof Object) {
-    //Map
-    if (origin instanceof Map) {
-      const copyMap = new Map();
-
+    case "[object Map]":
+      const newMap = new Map();
       for (const [key, value] of origin) {
-        copyMap.set(deepCopy(key), deepCopy(value));
+        newMap.set(deepCopy(key), deepCopy(value));
       }
+      return newMap;
 
-      return copyMap;
-    }
-
-    //Set
-    if (origin instanceof Set) {
-      const copySet = new Set();
-
+    case "[object Set]":
+      const newSet = new Set();
       for (const value of origin) {
-        copySet.add(deepCopy(value));
+        newSet.add(deepCopy(value));
       }
+      return newSet;
 
-      return copySet;
-    }
+    case "[object Object]":
+      return Object.keys(origin).reduce((acc, cur) => {
+        acc[cur] = deepCopy(origin[cur]);
+        return acc;
+      }, {});
 
-    return Object.keys(origin).reduce((acc, cur) => {
-      acc[cur] = deepCopy(origin[cur]);
-
-      return acc;
-    }, {});
+    default:
+      return origin;
   }
 }
 
