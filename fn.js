@@ -52,10 +52,11 @@ function deepCopy(origin) {
     },
   ];
 
+  if (origin === null || typeof origin !== "object") return origin;
+
   for (let { type, fn } of typeArr) {
     if (origin instanceof type) return fn();
   }
-  return origin;
 }
 
 module.exports = deepCopy;
