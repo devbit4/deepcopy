@@ -1,38 +1,61 @@
 function deepCopy(origin) {
-  const tag = toString.call(origin);
+  const typeArr = [
+    {
+      type: Date,
+      fn: () => {
+        return new Date(origin.getTime());
+      },
+    },
+    {
+      type: Array,
+      fn: () => {
+        return origin.reduce((acc, cur) => {
+          acc.push(deepCopy(cur));
+          return acc;
+        }, []);
+      },
+    },
+    {
+      type: Map,
+      fn: () => {
+        const copyMap = new Map();
+        for (const [key, value] of origin) {
+          copyMap.set(deepCopy(key), deepCopy(value));
+        }
+        return copyMap;
+      },
+    },
+    {
+      type: Set,
+      fn: () => {
+        const copySet = new Set();
+        for (const value of origin) {
+          copySet.add(deepCopy(value));
+        }
+        return copySet;
+      },
+    },
+    {
+      type: WeakMap,
+      fn: () => {
+        return origin;
+      },
+    },
+    {
+      type: Object,
+      fn: () => {
+        return Object.keys(origin).reduce((acc, cur) => {
+          acc[cur] = deepCopy(origin[cur]);
+          return acc;
+        }, {});
+      },
+    },
+  ];
 
-  switch (tag) {
-    case "[object Date]":
-      return new Date(origin.getTime());
+  if (origin === null || typeof origin !== "object") return origin;
 
-    case "[object Array]":
-      return origin.reduce((acc, cur) => {
-        acc.push(deepCopy(cur));
-        return acc;
-      }, []);
-
-    case "[object Map]":
-      const newMap = new Map();
-      for (const [key, value] of origin) {
-        newMap.set(deepCopy(key), deepCopy(value));
-      }
-      return newMap;
-
-    case "[object Set]":
-      const newSet = new Set();
-      for (const value of origin) {
-        newSet.add(deepCopy(value));
-      }
-      return newSet;
-
-    case "[object Object]":
-      return Object.keys(origin).reduce((acc, cur) => {
-        acc[cur] = deepCopy(origin[cur]);
-        return acc;
-      }, {});
-
-    default:
-      return origin;
+  for (let { type, fn } of typeArr) {
+    if (origin instanceof type) return fn();
   }
 }
 
